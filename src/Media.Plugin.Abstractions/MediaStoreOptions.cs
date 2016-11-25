@@ -69,12 +69,19 @@ namespace Plugin.Media.Abstractions
     /// </summary>
     public class PickMediaOptions
     {
+		/// <summary>
+		/// Gets or sets the the manual size of the image.
+		/// The image will aspect resize to the ManualSize as the max size of the image height or width. 
+		/// This value is only used if PhotoSize is PhotoSize.Manual 
+		/// </summary>
+		/// <value>The manual size of the image.</value>
+		public int? ManualSize { get; set; }
 
-        /// <summary>
-        /// Gets or sets the size of the photo.
-        /// </summary>
-        /// <value>The size of the photo.</value>
-        public PhotoSize PhotoSize { get; set; } = PhotoSize.Full;
+		/// <summary>
+		/// Gets or sets the size of the photo.
+		/// </summary>
+		/// <value>The size of the photo.</value>
+		public PhotoSize PhotoSize { get; set; } = PhotoSize.Full;
 
         int customPhotoSize = 100;
         /// <summary>
@@ -132,7 +139,13 @@ namespace Plugin.Media.Abstractions
         /// Video: UWP trimming when disabled won't allow time limit to be set
         /// </summary>
         public bool? AllowCropping { get; set; } = null;
-
+		/// <summary>
+		/// Gets or sets the the manual size of the image.
+		/// The image will aspect resize to the ManualSize as the max size of the image height or width. 
+		/// This value is only used if PhotoSize is PhotoSize.Manual 
+		/// </summary>
+		/// <value>The manual size of the image.</value>
+		public int? ManualSize { get; set; }
         /// <summary>
         /// Default camera
         /// Should work on iOS and Windows, but not guaranteed on Android as not every camera implements it
@@ -237,7 +250,14 @@ namespace Plugin.Media.Abstractions
         /// Only applies to iOS and Android
         /// Windows will auto configure back to small, medium, large, and full
         /// </summary>
-        Custom
+        Custom,
+		/// <summary>
+		/// Manual photo size.
+		/// Must set ManualSize to a value. The ManualSize will be the max width or height of the image
+		/// Only applies to iOS and Android.
+		/// Windows will will fall back to full
+		/// </summary>
+		Manual,
     }
 
     /// <summary>

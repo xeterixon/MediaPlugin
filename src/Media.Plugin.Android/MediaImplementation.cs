@@ -133,7 +133,7 @@ namespace Plugin.Media
             {
                 try
                 {
-                    await FixOrientationAndResizeAsync(media.Path, options.PhotoSize, options.CompressionQuality, options.CustomPhotoSize);
+                    await FixOrientationAndResizeAsync(media.Path, options);
                 }
                 catch (Exception ex)
                 {
@@ -219,7 +219,7 @@ namespace Plugin.Media
 
             try
             {
-                await FixOrientationAndResizeAsync(media.Path, options.PhotoSize, options.CompressionQuality, options.CustomPhotoSize);
+                await FixOrientationAndResizeAsync(media.Path, options);
             }
             catch(Exception ex)
             {
@@ -390,7 +390,137 @@ namespace Plugin.Media
 
             return completionSource.Task;
         }
+		public Task<bool> FixOrientationAndResizeAsync(string filePath, PickMediaOptions mediaOptions) 
+		{
+			return FixOrientationAndResizeAsync(
+				filePath,
+				new StoreCameraMediaOptions {
+					PhotoSize = mediaOptions.PhotoSize,					CompressionQuality = mediaOptions.CompressionQuality,					CustomPhotoSize = mediaOptions.CustomPhotoSize,
+					ManualSize = mediaOptions.ManualSize
+				});
+		}
 
+
+		/// <summary>
+        ///  Rotate an image if required and saves it back to disk.
+        /// </summary>
+        /// <param name="filePath">The file image path</param>
+        /// <param name="mediaOptions">The options.</param>
+        /// <returns>True if rotation or compression occured, else false</returns>
+
+		public Task<bool> FixOrientationAndResizeAsync(string filePath, StoreCameraMediaOptions mediaOptions) 
+		{
+            if (string.IsNullOrWhiteSpace(filePath))
+				return Task.FromResult(false);
+
+			try {
+				return Task.Run(() => {
+					try {
+						//First decode to just get dimensions
+						var options = new BitmapFactory.Options {
+							InJustDecodeBounds = true
+						};
+
+						//already on background task
+						BitmapFactory.DecodeFile(filePath, options);
+
+						var rotation = GetRotation(filePath);
+
+						if (rotation == 0 && mediaOptions.PhotoSize == PhotoSize.Full)
+							return false;
+
+						var percent = 1.0f;
+						switch (mediaOptions.PhotoSize) {
+						case PhotoSize.Large:
+							percent = .75f;
+							break;
+						case PhotoSize.Medium:
+							percent = .5f;
+							break;
+						case PhotoSize.Small:
+							percent = .25f;
+							break;
+						case PhotoSize.Custom:
+							percent = (float)mediaOptions.CustomPhotoSize / 100f;
+							break;
+						}
+						if (mediaOptions.PhotoSize == PhotoSize.Manual && mediaOptions.ManualSize.HasValue) 
+						{
+							var max = Math.Max(options.OutWidth,options.OutHeight);
+							if (max > mediaOptions.ManualSize) {
+								percent = (float)mediaOptions.ManualSize / (float)max;
+							}
+						}
+						var finalWidth = (int)(options.OutWidth * percent);
+						var finalHeight = (int)(options.OutHeight * percent);
+
+						//calculate sample size
+						options.InSampleSize = CalculateInSampleSize(options, finalWidth, finalHeight);
+
+						//turn off decode
+						options.InJustDecodeBounds = false;
+
+
+						//this now will return the requested width/height from file, so no longer need to scale
+						var originalImage = BitmapFactory.DecodeFile(filePath, options);
+
+						if (finalWidth != originalImage.Width || finalHeight != originalImage.Height) {
+							originalImage = Bitmap.CreateScaledBitmap(originalImage, finalWidth, finalHeight, true);
+						}
+						//if we need to rotate then go for it.
+						//then compresse it if needed
+						if (rotation != 0) {
+							var matrix = new Matrix();
+							matrix.PostRotate(rotation);
+							using (var rotatedImage = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width, originalImage.Height, matrix, true)) {
+
+								//always need to compress to save back to disk
+								using (var stream = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite)) {
+									rotatedImage.Compress(Bitmap.CompressFormat.Jpeg, mediaOptions.CompressionQuality , stream);
+									stream.Close();
+								}
+								rotatedImage.Recycle();
+							}
+							originalImage.Recycle();
+							originalImage.Dispose();
+							// Dispose of the Java side bitmap.
+							GC.Collect();
+							return true;
+						}
+
+
+
+						//always need to compress to save back to disk
+						using (var stream = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite)) {
+							originalImage.Compress(Bitmap.CompressFormat.Jpeg, mediaOptions.CompressionQuality, stream);
+							stream.Close();
+						}
+
+
+
+						originalImage.Recycle();
+						originalImage.Dispose();
+						// Dispose of the Java side bitmap.
+						GC.Collect();
+						return true;
+
+					} catch (Exception ex) {
+#if DEBUG
+						throw ex;
+#else
+                        return false;
+#endif
+					}
+				});
+			} catch (Exception ex) {
+#if DEBUG
+				throw ex;
+#else
+                return Task.FromResult(false);
+#endif
+			}			
+			
+		}
         /// <summary>
         ///  Rotate an image if required and saves it back to disk.
         /// </summary>
@@ -399,125 +529,7 @@ namespace Plugin.Media
         /// <returns>True if rotation or compression occured, else false</returns>
         public Task<bool> FixOrientationAndResizeAsync(string filePath, PhotoSize photoSize, int quality, int customPhotoSize)
         {
-            if (string.IsNullOrWhiteSpace(filePath))
-                return Task.FromResult(false);
-
-            try
-            {
-                return Task.Run(() =>
-                {
-                    try
-                    {
-                        //First decode to just get dimensions
-                        var options = new BitmapFactory.Options
-                        {
-                            InJustDecodeBounds = true
-                        };
-
-                        //already on background task
-                        BitmapFactory.DecodeFile(filePath, options);
-
-                        var rotation = GetRotation(filePath);
-
-                        if (rotation == 0 && photoSize == PhotoSize.Full)
-                            return false;
-
-                        var percent = 1.0f;
-                        switch (photoSize)
-                        {
-                            case PhotoSize.Large:
-                                percent = .75f;
-                                break;
-                            case PhotoSize.Medium:
-                                percent = .5f;
-                                break;
-                            case PhotoSize.Small:
-                                percent = .25f;
-                                break;
-                            case PhotoSize.Custom:
-                                percent = (float)customPhotoSize / 100f;
-                                break;
-                        }
-                        
-
-                        var finalWidth = (int)(options.OutWidth * percent);
-                        var finalHeight = (int)(options.OutHeight * percent);
-
-                        //calculate sample size
-                        options.InSampleSize = CalculateInSampleSize(options, finalWidth, finalHeight);
-                        
-                        //turn off decode
-                        options.InJustDecodeBounds = false;
-
-
-                        //this now will return the requested width/height from file, so no longer need to scale
-                        var originalImage = BitmapFactory.DecodeFile(filePath, options);
-                        
-                        if (finalWidth != originalImage.Width || finalHeight != originalImage.Height)
-                        {
-                            originalImage = Bitmap.CreateScaledBitmap(originalImage, finalWidth, finalHeight, true);
-                        }
-                        //if we need to rotate then go for it.
-                        //then compresse it if needed
-                        if (rotation != 0)
-                        {
-                            var matrix = new Matrix();
-                            matrix.PostRotate(rotation);
-                            using (var rotatedImage = Bitmap.CreateBitmap(originalImage, 0, 0, originalImage.Width, originalImage.Height, matrix, true))
-                            {
-                                    
-                                //always need to compress to save back to disk
-                                using (var stream = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite))
-                                {
-                                    rotatedImage.Compress(Bitmap.CompressFormat.Jpeg, quality, stream);
-                                    stream.Close();
-                                }
-                                rotatedImage.Recycle();
-                            }
-                            originalImage.Recycle();
-                            originalImage.Dispose();
-                            // Dispose of the Java side bitmap.
-                            GC.Collect();
-                            return true;
-                        }
-
-                            
-
-                        //always need to compress to save back to disk
-                        using (var stream = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite))
-                        {
-                            originalImage.Compress(Bitmap.CompressFormat.Jpeg, quality, stream);
-                            stream.Close();
-                        }
-                            
-                            
-
-                        originalImage.Recycle();
-                        originalImage.Dispose();
-                        // Dispose of the Java side bitmap.
-                        GC.Collect();
-                        return true;
-                        
-                    }
-                    catch (Exception ex)
-                    {
-#if DEBUG
-                        throw ex;
-#else
-                        return false;
-#endif
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-#if DEBUG
-                throw ex;
-#else
-                return Task.FromResult(false);
-#endif
-            }
-
+			return FixOrientationAndResizeAsync(filePath, new StoreCameraMediaOptions { PhotoSize = photoSize, CompressionQuality=quality, CustomPhotoSize = customPhotoSize });
         }
 
         public int CalculateInSampleSize(

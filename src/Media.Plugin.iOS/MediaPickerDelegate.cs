@@ -311,7 +311,14 @@ namespace Plugin.Media
                             percent = (float)options.CustomPhotoSize / 100f;
                             break;
                     }
-
+					if (options.PhotoSize == PhotoSize.Manual && options.ManualSize.HasValue) 
+					{
+						var max = Math.Max(image.CGImage.Width, image.CGImage.Height);
+						if(max > options.ManualSize)
+						{
+							percent = (float)options.ManualSize/(float)max;
+						}
+					}
                     //calculate new size
                     var width = (image.CGImage.Width * percent);
                     var height = (image.CGImage.Height * percent);
