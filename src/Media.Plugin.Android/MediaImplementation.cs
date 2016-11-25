@@ -390,6 +390,13 @@ namespace Plugin.Media
 
             return completionSource.Task;
         }
+		/// <summary>
+        ///  Rotate an image if required and saves it back to disk.
+        /// </summary>
+        /// <param name="filePath">The file image path</param>
+        /// <param name="mediaOptions">The options.</param>
+        /// <returns>True if rotation or compression occured, else false</returns>
+
 		public Task<bool> FixOrientationAndResizeAsync(string filePath, PickMediaOptions mediaOptions) 
 		{
 			return FixOrientationAndResizeAsync(
@@ -521,17 +528,6 @@ namespace Plugin.Media
 			}			
 			
 		}
-        /// <summary>
-        ///  Rotate an image if required and saves it back to disk.
-        /// </summary>
-        /// <param name="filePath">The file image path</param>
-        /// <param name="photoSize">Photo size to go to.</param>
-        /// <returns>True if rotation or compression occured, else false</returns>
-        public Task<bool> FixOrientationAndResizeAsync(string filePath, PhotoSize photoSize, int quality, int customPhotoSize)
-        {
-			return FixOrientationAndResizeAsync(filePath, new StoreCameraMediaOptions { PhotoSize = photoSize, CompressionQuality=quality, CustomPhotoSize = customPhotoSize });
-        }
-
         public int CalculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight)
         {
