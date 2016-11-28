@@ -77,11 +77,11 @@ namespace Plugin.Media.Abstractions
         /// <value>The manual size of the image.</value>
         public int? ManualSize { get; set; }
 
-		/// <summary>
-		/// Gets or sets the size of the photo.
-		/// </summary>
-		/// <value>The size of the photo.</value>
-		public PhotoSize PhotoSize { get; set; } = PhotoSize.Full;
+        /// <summary>
+        /// Gets or sets the size of the photo.
+        /// </summary>
+        /// <value>The size of the photo.</value>
+        public PhotoSize PhotoSize { get; set; } = PhotoSize.Full;
 
         int customPhotoSize = 100;
         /// <summary>
@@ -251,13 +251,13 @@ namespace Plugin.Media.Abstractions
         /// Windows will auto configure back to small, medium, large, and full
         /// </summary>
         Custom,
-		/// <summary>
-		/// Manual photo size.
-		/// Must set ManualSize to a value. The ManualSize will be the max width or height of the image
-		/// Only applies to iOS and Android.
-		/// Windows will will fall back to full
-		/// </summary>
-		Manual,
+        /// <summary>
+        /// Manual photo size.
+        /// The property ManualSize must be set to a value. The ManualSize will be the max width or height of the image
+        /// Currently this works on iOS and Android only.
+        /// On Windows the PhotoSize will fall back to Full
+        /// </summary>
+        Manual
     }
 
     /// <summary>
