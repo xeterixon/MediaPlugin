@@ -397,27 +397,27 @@ namespace Plugin.Media
         /// <param name="mediaOptions">The options.</param>
         /// <returns>True if rotation or compression occured, else false</returns>
 
-		public Task<bool> FixOrientationAndResizeAsync(string filePath, PickMediaOptions mediaOptions) 
-		{
-			return FixOrientationAndResizeAsync(
-				filePath,
+        public Task<bool> FixOrientationAndResizeAsync(string filePath, PickMediaOptions mediaOptions) 
+        {
+            return FixOrientationAndResizeAsync(
+                filePath,
 				new StoreCameraMediaOptions {
-					PhotoSize = mediaOptions.PhotoSize,					CompressionQuality = mediaOptions.CompressionQuality,					CustomPhotoSize = mediaOptions.CustomPhotoSize,
-					ManualSize = mediaOptions.ManualSize
-				});
-		}
-
-
-		/// <summary>
+                    PhotoSize = mediaOptions.PhotoSize,
+                    CompressionQuality = mediaOptions.CompressionQuality,
+                    CustomPhotoSize = mediaOptions.CustomPhotoSize,
+				    ManualSize = mediaOptions.ManualSize
+            });
+        }
+        /// <summary>
         ///  Rotate an image if required and saves it back to disk.
         /// </summary>
         /// <param name="filePath">The file image path</param>
         /// <param name="mediaOptions">The options.</param>
         /// <returns>True if rotation or compression occured, else false</returns>
-
-		public Task<bool> FixOrientationAndResizeAsync(string filePath, StoreCameraMediaOptions mediaOptions) 
+		/// 
+        public Task<bool> FixOrientationAndResizeAsync(string filePath, StoreCameraMediaOptions mediaOptions)
 		{
-            if (string.IsNullOrWhiteSpace(filePath))
+			if (string.IsNullOrWhiteSpace(filePath))
 				return Task.FromResult(false);
 
 			try {
@@ -451,9 +451,8 @@ namespace Plugin.Media
 							percent = (float)mediaOptions.CustomPhotoSize / 100f;
 							break;
 						}
-						if (mediaOptions.PhotoSize == PhotoSize.Manual && mediaOptions.ManualSize.HasValue) 
-						{
-							var max = Math.Max(options.OutWidth,options.OutHeight);
+						if (mediaOptions.PhotoSize == PhotoSize.Manual && mediaOptions.ManualSize.HasValue) {
+							var max = Math.Max(options.OutWidth, options.OutHeight);
 							if (max > mediaOptions.ManualSize) {
 								percent = (float)mediaOptions.ManualSize / (float)max;
 							}
@@ -483,7 +482,7 @@ namespace Plugin.Media
 
 								//always need to compress to save back to disk
 								using (var stream = File.Open(filePath, FileMode.Create, FileAccess.ReadWrite)) {
-									rotatedImage.Compress(Bitmap.CompressFormat.Jpeg, mediaOptions.CompressionQuality , stream);
+									rotatedImage.Compress(Bitmap.CompressFormat.Jpeg, mediaOptions.CompressionQuality, stream);
 									stream.Close();
 								}
 								rotatedImage.Recycle();
@@ -525,10 +524,11 @@ namespace Plugin.Media
 #else
                 return Task.FromResult(false);
 #endif
-			}			
-			
+			}
+
 		}
-        public int CalculateInSampleSize(
+
+		public int CalculateInSampleSize(
             BitmapFactory.Options options, int reqWidth, int reqHeight)
         {
             // Raw height and width of image

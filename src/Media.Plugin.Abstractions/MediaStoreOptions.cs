@@ -69,13 +69,13 @@ namespace Plugin.Media.Abstractions
     /// </summary>
     public class PickMediaOptions
     {
-		/// <summary>
-		/// Gets or sets the the manual size of the image.
-		/// The image will aspect resize to the ManualSize as the max size of the image height or width. 
-		/// This value is only used if PhotoSize is PhotoSize.Manual 
-		/// </summary>
-		/// <value>The manual size of the image.</value>
-		public int? ManualSize { get; set; }
+        /// <summary>
+        /// Gets or sets the the manual size of the image.
+        /// The image will aspect resize to the ManualSize as the max size of the image height or width. 
+        /// This value is only used if PhotoSize is PhotoSize.Manual 
+        /// </summary>
+        /// <value>The manual size of the image.</value>
+        public int? ManualSize { get; set; }
 
 		/// <summary>
 		/// Gets or sets the size of the photo.
@@ -139,13 +139,13 @@ namespace Plugin.Media.Abstractions
         /// Video: UWP trimming when disabled won't allow time limit to be set
         /// </summary>
         public bool? AllowCropping { get; set; } = null;
-		/// <summary>
-		/// Gets or sets the the manual size of the image.
-		/// The image will aspect resize to the ManualSize as the max size of the image height or width. 
-		/// This value is only used if PhotoSize is PhotoSize.Manual 
-		/// </summary>
-		/// <value>The manual size of the image.</value>
-		public int? ManualSize { get; set; }
+        /// <summary>
+        /// Gets or sets the the manual size of the image.
+        /// The image will aspect resize to the ManualSize as the max size of the image height or width. 
+        /// This value is only used if PhotoSize is PhotoSize.Manual 
+        /// </summary>
+        /// <value>The manual size of the image.</value>
+        public int? ManualSize { get; set; }
         /// <summary>
         /// Default camera
         /// Should work on iOS and Windows, but not guaranteed on Android as not every camera implements it
